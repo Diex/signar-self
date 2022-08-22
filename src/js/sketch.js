@@ -1,7 +1,7 @@
 import p5 from 'p5';
 import '../css/style.scss';
 import google from '../assets/footsteps.json';
-import regeneratorRuntime from 'regenerator-runtime';
+import please from './please'
 
 const sketch = (p) => {
   let canvas;
@@ -18,7 +18,7 @@ const sketch = (p) => {
     maxdist,
     maxtime,
     maxcal;
-  let background;
+  // let background;
   let pallete;
   let randoms;
   let prev;
@@ -74,10 +74,12 @@ const sketch = (p) => {
 
   p.setup = () => {
     canvas = p.createCanvas(p.windowWidth, p.windowHeight);
+
     p.frameRate(60);
     p.textFont(roboto);
     p.textSize(12);
-    p.background(0);
+    p.background(0);    
+    
   };
 
   p.draw = () => {
@@ -90,9 +92,11 @@ const sketch = (p) => {
 
   async function spawn() {
     value = cryptoColor();
-    background = await complement(value);
+    // background = await complement(value);
     pallete = await createPallete(value);
-    randoms = await randomNumbers();
+    // randoms = await randomNumbers();
+    randoms = randomNumbers();
+    console.log(randoms)
     prev = randoms.shift();
     shuffleArray(tripsCoords);
     count = 0;
@@ -126,7 +130,7 @@ const sketch = (p) => {
 
     let element = tripsCoords[id];
 
-    printData(element, id);
+    // printData(element, id);
 
     if (!element) {
       id++;
@@ -139,15 +143,15 @@ const sketch = (p) => {
 
     let total = distance + steps + time + calories;
 
-    let left = p.windowWidth * 0.25;
+    // let left = p.windowWidth * 0.25;
+    let left = 0;
 
+    // p.translate(left, 12);
 
-    p.translate(left, 12);
-
-    let w = (p.windowWidth * 0.5) / 8;
+    // let w = (p.windowWidth * 0.5) / 8;
+    let w = p.windowWidth / 8;
     let h = (p.windowHeight - 12) / 31;
 
-    
     let row = Math.floor(id / 8);
     let col = id % 8;
 
@@ -191,7 +195,7 @@ const sketch = (p) => {
 
     let w4 = p.map(calories, 0, total, 0, w);
 
-    c = toColor('l');
+    c = toColor('r');
     c.setAlpha(alpha);
     p.fill(c);
     if (yes()) {
@@ -226,8 +230,17 @@ const sketch = (p) => {
   }
 
   p.windowResized = () => {
-    p.resizeCanvas(p.windowWidth, p.windowHeight);
-    p.background(0);
+    // console.log(canvas);
+
+    setTimeout(() => {
+      console.log(
+        canvas.elt.parentElement.offsetHeight,
+        canvas.elt.parentElement
+      );
+      p.resizeCanvas(p.windowWidth, p.windowHeight);
+      p.background(0);
+      // p.background(background);
+    }, 500);
   };
 
   p.keyPressed = () => {};
@@ -291,68 +304,111 @@ const sketch = (p) => {
   }
 
   async function createPallete(value) {
+    let base_color = please.HEX_to_HSV(value);
+    console.log('make color', base_color);
+    let response = {};
+    response.colors = please.make_scheme(base_color,{
+      scheme_type: 'analogous',
+      format: 'rgb'
+    }) 
+    console.log(response.colors)
+
     // monochrome, monochrome-dark, monochrome-light, analogic, complement, analogic-complement, triad and quad.
-    let url =
-      'https://www.thecolorapi.com/scheme?hex=' +
-      value +
-      '&mode=analogic&count=4&format=json';
-    let pallete = {};
+    // let url =
+    //   'https://www.thecolorapi.com/scheme?hex=' +
+    //   value +
+    //   '&mode=analogic&count=4&format=json';
     
-    await p.httpGet(url, 'json', false, function (response) {
-      console.log(response);
+    let pallete = {};
+
+    // await p.httpGet(url, 'json', false, function (response) {
+    //   console.log(response);
+    //   pallete['t'] = p.color(
+    //     response.colors[0].rgb.r,
+    //     response.colors[0].rgb.g,
+    //     response.colors[0].rgb.b
+    //   );
+    //   pallete['b'] = p.color(
+    //     response.colors[1].rgb.r,
+    //     response.colors[1].rgb.g,
+    //     response.colors[1].rgb.b
+    //   );
+    //   pallete['l'] = p.color(
+    //     response.colors[2].rgb.r,
+    //     response.colors[2].rgb.g,
+    //     response.colors[2].rgb.b
+    //   );
+    //   pallete['r'] = p.color(
+    //     response.colors[3].rgb.r,
+    //     response.colors[3].rgb.g,
+    //     response.colors[3].rgb.b
+    //   );
+    // });
+
+    
+      // console.log(response);
       pallete['t'] = p.color(
-        response.colors[0].rgb.r,
-        response.colors[0].rgb.g,
-        response.colors[0].rgb.b
+        response.colors[0].r,
+        response.colors[0].g,
+        response.colors[0].b
       );
       pallete['b'] = p.color(
-        response.colors[1].rgb.r,
-        response.colors[1].rgb.g,
-        response.colors[1].rgb.b
+        response.colors[1].r,
+        response.colors[1].g,
+        response.colors[1].b
       );
       pallete['l'] = p.color(
-        response.colors[2].rgb.r,
-        response.colors[2].rgb.g,
-        response.colors[2].rgb.b
+        response.colors[2].r,
+        response.colors[2].g,
+        response.colors[2].b
       );
       pallete['r'] = p.color(
-        response.colors[3].rgb.r,
-        response.colors[3].rgb.g,
-        response.colors[3].rgb.b
+        response.colors[3].r,
+        response.colors[3].g,
+        response.colors[3].b
       );
-      
-    });
+    
+
 
     return pallete;
   }
 
-  async function complement(value) {
-    let url =
-      'https://www.thecolorapi.com/scheme?hex=' +
-      value +
-      '&mode=complement&count=1&format=json';
-    let background;
-    await p.httpGet(url, 'json', false, function (response) {
-      background = p.color(
-        response.colors[0].rgb.r,
-        response.colors[0].rgb.g,
-        response.colors[0].rgb.b
-      );
-      
-    });
-    return background;
-  }
-  async function randomNumbers() {
-    let qty = 512;
-    let url =
-      'https://qrng.anu.edu.au/API/jsonI.php?length=' + qty + '&type=uint8';
-    let r;
-    await await p.httpGet(url, 'json', false, function (response) {
-      console.log(response);
-      r = response.data;
-    });
+  // async function complement(value) {
+  //   let url =
+  //     'https://www.thecolorapi.com/scheme?hex=' +
+  //     value +
+  //     '&mode=complement&count=1&format=json';
+  //   let background;
+  //   await p.httpGet(url, 'json', false, function (response) {
+  //     background = p.color(
+  //       response.colors[0].rgb.r,
+  //       response.colors[0].rgb.g,
+  //       response.colors[0].rgb.b
+  //     );
+  //   });
+  //   return background;
+  // }
 
-    return r;
+  // async function randomNumbers() {
+  function randomNumbers() {
+    let qty = 512;
+    
+    let array = new Uint8Array(qty);
+    window.crypto.getRandomValues(array);
+    
+    // let r = [];
+    // r = Array.from(array);
+    // console.log(r)
+
+    // let url =
+    //   'https://qrng.anu.edu.au/API/jsonI.php?length=' + qty + '&type=uint8';
+    // // let r;
+    // await await p.httpGet(url, 'json', false, function (response) {
+    //   console.log(response);
+    //   r = response.data;
+    // });
+
+    return Array.from(array);
   }
 
   let bit = 0;
